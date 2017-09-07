@@ -34,6 +34,7 @@ TITLE CALCULADORA SHOW
 	SEL2	DB "Modo DECIMAL selecionado!$"
 	SEL3	DB "Modo HEXADEC selecionado!$"
 	TEMPM	DB 0H
+	HFLAG	DB 0H	;hexadec flag
 .CODE
 BEGIN PROC
 	MOV AX, @DATA
@@ -335,9 +336,9 @@ GOTMO:
 	MOV CMOD,AL
 	CALL PE
 	CMP CMOD,31H
-	JE CAS1I
+	JE CAS1IJ
 	CMP CMOD,32H
-	JE CAS2I
+	JE CAS2IJ
 	CMP CMOD,33H
 	JE CAS3I
 	JMP IFERR
@@ -350,20 +351,49 @@ CAS3I:
 		INT 21H
 		CALL PE
 CAS3:
+		;MOV HFLAG,0
 		MOV AH,01
 		INT 21H
 		CMP AL,0DH
 		JZ JSHCT		;termina de receber o operando se receber CR
 						;checar se esta fora dos limites
-		CMP AL,30H
+		
+		CMP AL,30H		;<0
 		JL NIFER
-		CMP AL,3BH
-		JG NIFER
+		CMP AL,39H		;0 <= X <= 9
+		JL HOKN
+		CMP AL,41H		;<A
+		JL NIFER
+		CMP AL,46H		;A <= X <= F
+		JL HOKA
+		CMP AL,61H		;<a
+		JL NIFER
+		CMP AL,39H		;a <= X <= f
+		JL HOKI
+		JMP NIFER
+HJ1:
+
+HOKA:	SUB AL,37H		;X - "A" + 10
+		JMP HOK
+HOKI:	SUB AL,57H		;X - "a" + 10
+		JMP HOK
+HOKN:	SUB AL,30H		;X - "0"
+HOK:
+		;JG NIFER
 						;se chegou aqui, nao houveram erros de leitura
 		MOV TEMP,AL
-						;4 deslocamentos pra esquerda
+						;4 deslocamentos pra esquerda OU multiplica por 16
+		MOV TEMP,AL
+		MOV AL,OP1 
+		MOV CX, 16
+		MUL CX
+		MOV OP1,AL
 		MOV AL,TEMP
-		SUB AL,30H
+		
+		;MUL OP1,010
+		;SUB AL,30H
+		ADD OP1,AL		
+						
 		JMP CAS2
 	;JMP EXITMIMP
 NIFER:
@@ -371,6 +401,16 @@ NIFER:
 	JMP BEINP
 JSHCT:
 	JMP EXITMIMP
+CAS1IJ:					;extensor do jump
+	JMP CAS1I
+CAS2IJ:
+	JMP CAS2I
+CAS2DEL:
+	MOV AL,OP1
+	MOV CX,10
+	DIV AL
+	MOV OP1,AL
+	JMP CAS2
 CAS2I:	;caso 2 DECIM
 		MOV AX,@DATA
 		MOV DS,AX
@@ -383,6 +423,9 @@ CAS2:
 		INT 21H
 		CMP AL,0DH
 		JZ EXITMIMP		;termina de receber um operando se receber CR
+		
+		CMP AL,08H
+		JZ CAS2DEL
 						;checar se esta fora dos limites
 		CMP AL,30H
 		JL IFERR
@@ -419,15 +462,27 @@ CAS1:
 		CMP AL,31H
 		JG IFERR
 						;se chegou aqui, nao houveram erros de leitura
+		;MOV TEMP,AL
+		;MOV BL,OP1
+		;MOV BH,0		;pode ser que de errado
+		;SHL BX,1
+		
+		;MOV OP1,BL
+		;MOV AL,TEMP
+		
+		;SUB AL,30H
+		;ADD OP1,AL
+		
 		MOV TEMP,AL
-		MOV BL,OP1
-		MOV BH,0		;pode ser que de errado
-		SHL BX,1
-		MOV OP1,BL
+		MOV AL,OP1 
+		MOV CX, 2
+		MUL CX
+		MOV OP1,AL
 		MOV AL,TEMP
 		
+		;MUL OP1,010
 		SUB AL,30H
-		ADD OP1,AL
+		ADD OP1,AL		
 	
 		JMP CAS1
 	;JMP EXITMIMP

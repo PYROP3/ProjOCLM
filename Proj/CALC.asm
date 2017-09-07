@@ -34,7 +34,7 @@ TITLE CALCULADORA SHOW
 	SEL2	DB "Modo DECIMAL selecionado!$"
 	SEL3	DB "Modo HEXADEC selecionado!$"
 	TEMPM	DB 0H
-	HFLAG	DB 0H	;hexadec flag
+	MULTIB	DB 0H
 .CODE
 BEGIN PROC
 	MOV AX, @DATA
@@ -51,111 +51,7 @@ BEGIN PROC
 	MOV AH,09 ;imprimir strings
 	INT 21H
 	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,DIVIS
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,DIGITE
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD1
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD2
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD3
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD4
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD5
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD6
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD7
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD8
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD9
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD10
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
-	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD11
-	MOV AH,09 ;imprimir strings
-	INT 21H
-	
-	CALL PE
+	CALL PRINTMEN
 	
 IMPINT:	
 	MOV AX, @DATA
@@ -172,7 +68,9 @@ IMPINT:
 	MOV AH,01			;recebe comando (salva em AL)
 	INT 21H				;esperar o CONFIRMA? (ENTER)
 	MOV CCMD,AL
-	CALL PE
+	;CALL PE
+	MOV AX,3H
+	INT 10H
 	
 	MOV OP1,0
 	MOV OP1,0
@@ -204,11 +102,11 @@ IMPINT:
 	CMP AL,41H	;A
 	JE COR
 	CMP AL,42H	;B
-	JE COR
+	JE CHEL
 	CMP AL,61H	;a
 	JE COR
 	CMP AL,62H	;b
-	JE COR
+	JE CHEL
 	;se nenhum comando foi achado, ele nao existe
 	;imprimir erro e pedir o comando de novo
 	CALL PRERR
@@ -222,8 +120,6 @@ CXOR:
 CNOT:
 	JMP PRRES
 CSUM:
-	MOV BL,OP1
-	MOV OP2,BL
 	CALL OPADD
 	JMP PRRES
 CSUB:
@@ -238,6 +134,7 @@ CMU2:
 CDV2:
 	JMP PRRES
 CHEL:
+	CALL PRINTMEN
 	JMP IMPINT
 PRRES:
 	MOV AH,2
@@ -570,5 +467,114 @@ GETINPUT PROC
 	
 	RET
 GETINPUT ENDP
+
+PRINTMEN PROC
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,DIVIS
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,DIGITE
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD1
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD2
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD3
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD4
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD5
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD6
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD7
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD8
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD9
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD10
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD11
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	RET
+PRINTMEN ENDP
 
 END BEGIN

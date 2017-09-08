@@ -266,14 +266,19 @@ GOTMO:
 	MOV AL,TEMPM
 	MOV CMOD,AL
 	;CALL PE
+	
 	CMP CMOD,31H
 	JE CAS1IJ
+	
 	CMP CMOD,32H
 	JE CAS2IJ
+	
 	CMP CMOD,33H
 	JE CAS3IJ
+	
 	CMP CMOD,34H
 	JE CAS4I
+	
 	JMP IFERR
 		;caso 4 HEXA
 CAS4I:	
@@ -307,10 +312,13 @@ CAS4:
 		JMP NIFER
 CAS1IJ:					;extensor do jump
 	JMP CAS1I
+	
 CAS2IJ:
 	JMP CAS2I
+	
 CAS3IJ:
 	JMP CAS3I
+	
 HJ1:
 
 HOKA:	SUB AL,37H		;X - "A" + 10
@@ -374,7 +382,7 @@ CAS3:
 						;se chegou aqui, nao houveram erros de leitura
 		MOV TEMP,AL
 		MOV AL,OP1 
-		MOV CX, 10
+		MOV CX,10
 		MUL CX
 		MOV OP1,AL
 		MOV AL,TEMP
@@ -382,7 +390,7 @@ CAS3:
 		;MUL OP1,010
 		SUB AL,30H
 		ADD OP1,AL		
-		JMP CAS2		;receber proximo caracter
+		JMP CAS3		;receber proximo caracter
 	;JMP EXITMIMP
 CAS2I:	;caso 2 OCT
 		MOV AX,@DATA

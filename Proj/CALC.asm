@@ -487,18 +487,91 @@ EXITMIMP:
 GETINPUTENC ENDP
 
 OPAND PROC
+	CALL PRINTOPINTR
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,I1
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	CALL PE
+	CALL PRINTSLINE
+	
+	CALL GETINPUTENC
+	MOV BL,OP1
+	MOV OP2,BL
+	MOV OP1,0
+	CALL GETINPUTENC
+	AND BL,OP1
+	
+	MOV OP1,BL
+	
+	CALL OUTPUT
 	RET
 OPAND ENDP
 
 OPOR PROC
+	CALL PRINTOPINTR
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,I2
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	CALL PE
+	CALL PRINTSLINE
+	
+	CALL GETINPUTENC
+	MOV BL,OP1
+	MOV OP2,BL
+	MOV OP1,0
+	CALL GETINPUTENC
+	OR BL,OP1
+	
+	MOV OP1,BL
+	
+	CALL OUTPUT
 	RET
 OPOR ENDP
 
 OPXOR PROC
+	CALL PRINTOPINTR
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,I3
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	CALL PE
+	CALL PRINTSLINE
+	
+	CALL GETINPUTENC
+	MOV BL,OP1
+	MOV OP2,BL
+	MOV OP1,0
+	CALL GETINPUTENC
+	XOR BL,OP1
+	
+	MOV OP1,BL
+	
+	CALL OUTPUT
 	RET
 OPXOR ENDP
 
 OPNOT PROC
+	CALL PRINTOPINTR
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,I4
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	CALL PE
+	CALL PRINTSLINE
+	
+	CALL GETINPUTENC
+	
+	MOV BL,OP1
+	NOT BL
+	MOV OP1,BL
+	
+	CALL OUTPUT
 	RET
 OPNOT ENDP
 
@@ -810,113 +883,66 @@ PRINTMEN PROC
 PRINTMEN ENDP
 
 OUTPUT PROC
-
-
-
 		CALL PE
 
-
-
 		MOV AX, @DATA
-
 		MOV DS,AX
-
 		LEA DX,MODOUT
-
 		MOV AH,09 ;imprimir strings
-
 		INT 21H
-
 		
-
-		CALL PE
-
-		MOV AX,@DATA
-
-		MOV DS,AX
-
-		LEA DX,DIVIS
-
-		MOV AH,09
-
-		INT 21H
-
-		
-
-		CALL PE
-
-		
-
-		MOV AX, @DATA
-
-		MOV DS,AX
-
-		LEA DX,MOD1
-
-		MOV AH,09 ;imprimir strings
-
-		INT 21H
-
-		
-
-		CALL PE
-
-		
-
-		MOV AX, @DATA
-
-		MOV DS,AX
-
-		LEA DX,MOD2
-
-		MOV AH,09 ;imprimir strings
-
-		INT 21H
-
-		
-
-		CALL PE
-
-		
-
-		MOV AX, @DATA
-
-		MOV DS,AX
-
-		LEA DX,MOD3
-
-		MOV AH,09 ;imprimir strings
-
-		INT 21H
-
-		
-
-		CALL PE
-
-		
-
-		MOV AX, @DATA
-
-		MOV DS,AX
-
-		LEA DX,MOD4
-
-		MOV AH,09 ;imprimir strings
-
-		INT 21H
-
-		
-
 		CALL PE
 
 		CALL PRINTSLINE
 
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,MOD1
+		MOV AH,09 ;imprimir strings
+		INT 21H
 		
+		CALL PE
+		
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,MOD2
+		MOV AH,09 ;imprimir strings
+		INT 21H
+		
+		CALL PE
 
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,MOD3
+		MOV AH,09 ;imprimir strings
+		INT 21H
+
+		CALL PE
+
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,MOD4
+		MOV AH,09 ;imprimir strings
+		INT 21H
+		
+		CALL PE
+
+		CALL PRINTSLINE
+
+		;MOV AH,01			;recebe comando (salva em AL)
+		;INT 21H				;esperar o CONFIRMA? (ENTER)
+
+		MOV DX,03EH			;imprime seta
+		INT 21H
+	ASKAO:
 		MOV AH,01			;recebe comando (salva em AL)
-
-		INT 21H				;esperar o CONFIRMA? (ENTER)
-
+		INT 21H				
+		CMP AL,0DH
+		JZ GOTMOO
+		MOV TEMPM,AL
+		JMP ASKAO
+	GOTMOO:
+	
 		;CALL PE
 		CMP AL,31H			;verifica opção digitada
 		JE CASE1
@@ -949,10 +975,7 @@ OUTPUT PROC
 		MOV BX,2
 		JMP MAGIC
 
-		
-
 		CASE2:
-
 		
 		CALL PE
 		MOV AX, @DATA
@@ -965,8 +988,6 @@ OUTPUT PROC
 		
 		MOV BX,8
 		JMP MAGIC
-
-		
 
 		CASE3:
 
@@ -983,8 +1004,6 @@ OUTPUT PROC
 		MOV BX,10
 		JMP MAGIC
 
-		
-
 		CASE4:
 
 		CALL PE
@@ -1000,32 +1019,17 @@ OUTPUT PROC
 		MOV BX,16
 		JMP MAGIC
 
-		
-
 	MAGIC:
-
-	
-
 		CMP OPA,1
-
 		JE DIMM
-
-		
 
         MOV AL, OP1     ;move operador 1 para al            
 
-
-
         MOV CL, AL		;move al para cl
-
         ;MOV AX, 0       ;limpa ax    
 		XOR AX,AX
 
         MOV AL, CL      ;retorna cl para al     
-
-
-
-
 
         ;MOV CX, 0       ;inicializa o contador
 		XOR CX,CX
@@ -1033,16 +1037,10 @@ OUTPUT PROC
         ;MOV DX, 0       ;limpa dx
 		XOR DX,DX
 
-
-        DVD2:   		;divide por 16                      
-
-                         
-
+        DVD2:   		;divide por 16
             DIV BX      ; divide ax por bx, resultado da div em ax   
 
             PUSH DX    	;resto fica em dx e epilha
-
-
 
             ADD CX, 1   ;adiciona 1 ao contador
 
@@ -1053,10 +1051,7 @@ OUTPUT PROC
 
             JNE DVD2   	;se o resultado for !=0 faz a operação novamente
 
-
-
         GHEX:
-
             ;MOV DX, 0   ;limpa DX 
 			XOR DX,DX
 
@@ -1065,57 +1060,34 @@ OUTPUT PROC
             ADD DL, 30h ;adiciona 30h em dl(conteudo de dx) devido a tabela ascii   
 
 
-
             CMP DL, 39h	;compara
 
             JG MHEX	;Caso o valor ultrapassar 9 pula para função mhex para descobrir letra equivalente
 
-
-
         PRINTHEX:        
-
-
-
             MOV AH, 02h  ;imprime resultado na tela
 
-            INT 21H  
-
-
+            INT 21H
 
             LOOP GHEX    ;executa ghex decrementando cx até que este seja 0        
 
-                                    
-
-            JMP STOP	;para o programa
+            JMP STOP	;para o programa - NAO NAO NAO NAO NAO
 
         MHEX:
-
             ADD DL, 7h	;adiciona 7 devido ao espaço entre as letras e números da tabela ascii
 
             JMP PRINTHEX            
 
         STOP:
-
         MOV AH,4CH
-
 		INT 21H
-
 		
-
 	DIMM:
-
 	MOV DL,2DH
-
 	MOV AH, 02h  ;imprime resultado na tela
-
     INT 21H
-
 	MOV OPA,0
-
 	JMP MAGIC
-
-
-
 OUTPUT ENDP
 
 END BEGIN

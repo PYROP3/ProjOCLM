@@ -17,27 +17,29 @@ TITLE CALCULADORA SHOW
 	CMD9	DB "  9 - Multiplicacao por 2 exp$"				;1
 	CMD10	DB "  A - Divisao por 2 exp$"					;1
 	CMD11	DB "  B - Ajuda (imprimir comandos novamente)$"	;0
+	CMD12	DB "  E - Encerrar calculadora$"				;0
 	CCMD	DB 0H
 	OP1		DB 0H
 	OP2		DB 0H
+	OPA		DB 0H
 	RESUL	DB 0H
 	DIVIS 	DB "-----------------------------------------$"
 	DDIVIS	DB "=========================================$"
 	MODENT	DB "Modos de entrada:$"
 	MODOUT	DB "Modos de saida:$"
 	MOD1	DB "  1 - Binario$"
-	MOD2	DB "  2 - Decimal$"
-	MOD3	DB "  3 - Hexadecimal$"
-	MOD4	DB "  4 - Octal$"
+	MOD2	DB "  2 - Octal$"
+	MOD3	DB "  3 - Decimal$"
+	MOD4	DB "  4 - Hexadecimal$"
 	ERRMSG	DB "Valor fora dos limites$"
 	CMOD	DB 0H
 	TEMP	DB 0H
 	SEL1	DB "Modo BINARIO selecionado!$"
-	SEL2	DB "Modo DECIMAL selecionado!$"
-	SEL3	DB "Modo HEXADEC selecionado!$"
+	SEL2	DB "Modo OCTAL selecionado!$"
+	SEL3	DB "Modo DECIMAL selecionado!$"
+	SEL4	DB "Modo HEXADEC selecionado!$"
 	TEMPM	DB 0H
 	MULTIB	DB 0H
-	OPA		DB 0H
 	SEL		DB "Calculando operacao $"
 	I1		DB "AND$"
 	I2		DB "OR$"
@@ -49,6 +51,7 @@ TITLE CALCULADORA SHOW
 	I8		DB "Divisao$"
 	I9		DB "Multiplicacao por potencia de 2$"
 	I10		DB "Divisao por potencia de 2$"
+	EXMES	DB "Encerrando calculadora...$"
 .CODE
 BEGIN PROC
 	MOV AX, @DATA
@@ -83,8 +86,8 @@ IMPINT:
 	INT 21H				;esperar o CONFIRMA? (ENTER)
 	MOV CCMD,AL
 	;CALL PE
-	MOV AX,3H
-	INT 10H
+	MOV AX,3H			;limpar a tela
+	INT 10H				;limpar a tela
 	
 	MOV OP1,0
 	MOV OP1,0
@@ -117,10 +120,14 @@ IMPINT:
 	JE COR
 	CMP AL,42H	;B
 	JE CHEL
+	CMP AL,45H	;E
+	JE CENC
 	CMP AL,61H	;a
 	JE COR
 	CMP AL,62H	;b
 	JE CHEL
+	CMP AL,65H	;e
+	JE CENC
 	;se nenhum comando foi achado, ele nao existe
 	;imprimir erro e pedir o comando de novo
 	CALL PRERR
@@ -158,18 +165,21 @@ CDV2:
 CHEL:
 	CALL PRINTMEN
 	JMP IMPINT
+CENC:
+	CALL ENDCALC
 PRRES:				;aqui que tem que adicionar o negocinho
-	MOV AH,2
-	MOV DL,3DH
-	INT 21H
-	MOV AH,2
-	MOV DL,OP1		;get results from op1
-	ADD DL,30H
-	INT 21H
+	;MOV AH,2
+	;MOV DL,3DH
+	;INT 21H
+	;MOV AH,2
+	;MOV DL,OP1		;get results from op1
+	;ADD DL,30H
+	;INT 21H
 					;print results
-	CALL PE
-	CALL PRINTDLINE
-	;JMP IMPINT
+	;CALL PE
+	;CALL PRINTDLINE
+	
+	;JMP IMPINT		;REMOVER COMENTARIO ANTES DE ENVIAR PLMDDS
 	
 	MOV AH,4CH
 	INT 21H
@@ -232,6 +242,14 @@ BEINP:
 	INT 21H
 	
 	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,MOD4
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
 	CALL PRINTSLINE
 	
 	MOV DX,03EH			;imprime seta
@@ -253,23 +271,20 @@ GOTMO:
 	CMP CMOD,32H
 	JE CAS2IJ
 	CMP CMOD,33H
-	JE CAS3I
+	JE CAS3IJ
+	CMP CMOD,34H
+	JE CAS4I
 	JMP IFERR
-		;caso 3 HEXA
-CAS3I:	
+		;caso 4 HEXA
+CAS4I:	
 		MOV AX,@DATA
 		MOV DS,AX
-		LEA DX,SEL3
+		LEA DX,SEL4
 		MOV AH,09
 		INT 21H
 		CALL PE
-		MOV AX,@DATA
-		MOV DS,AX
-		LEA DX,DIVIS
-		MOV AH,09
-		INT 21H
-		CALL PE
-CAS3:
+		CALL PRINTSLINE
+CAS4:
 		;MOV HFLAG,0
 		MOV AH,01
 		INT 21H
@@ -279,19 +294,23 @@ CAS3:
 		
 		CMP AL,30H		;<0
 		JL NIFER
-		CMP AL,39H		;0 <= X <= 9
+		CMP AL,3AH		;0 <= X <= 9
 		JL HOKN
 		CMP AL,41H		;<A
 		JL NIFER
-		CMP AL,46H		;A <= X <= F
+		CMP AL,47H		;A <= X <= F
 		JL HOKA
 		CMP AL,61H		;<a
 		JL NIFER
-		CMP AL,39H		;a <= X <= f
+		CMP AL,67H		;a <= X <= f
 		JL HOKI
 		JMP NIFER
 CAS1IJ:					;extensor do jump
 	JMP CAS1I
+CAS2IJ:
+	JMP CAS2I
+CAS3IJ:
+	JMP CAS3I
 HJ1:
 
 HOKA:	SUB AL,37H		;X - "A" + 10
@@ -322,40 +341,36 @@ NIFER:
 	JMP BEINP
 JSHCT:
 	JMP EXITMIMP
-CAS2IJ:
-	JMP CAS2I
+;CAS3IJ:
+	;JMP CAS3I
 CAS2DEL:
 	MOV AL,OP1
 	MOV CX,10
 	DIV AL
 	MOV OP1,AL
 	JMP CAS2
-CAS2I:	;caso 2 DECIM
+	
+CAS3I:	;caso 3 DECIM
 		MOV AX,@DATA
 		MOV DS,AX
-		LEA DX,SEL2
+		LEA DX,SEL3
 		MOV AH,09
 		INT 21H
 		CALL PE
-		MOV AX,@DATA
-		MOV DS,AX
-		LEA DX,DIVIS
-		MOV AH,09
-		INT 21H
-		CALL PE
-CAS2:
+		CALL PRINTSLINE
+CAS3:
 		MOV AH,01
 		INT 21H
 		CMP AL,0DH
-		JZ EXITMIMP		;termina de receber um operando se receber CR
+		JZ EXITMIMPJ	;termina de receber um operando se receber CR
 		
 		CMP AL,08H
 		JZ CAS2DEL
 						;checar se esta fora dos limites
 		CMP AL,30H
-		JL IFERR
+		JL IFERRJ
 		CMP AL,39H
-		JG IFERR
+		JG IFERRJ
 						;se chegou aqui, nao houveram erros de leitura
 		MOV TEMP,AL
 		MOV AL,OP1 
@@ -369,6 +384,42 @@ CAS2:
 		ADD OP1,AL		
 		JMP CAS2		;receber proximo caracter
 	;JMP EXITMIMP
+CAS2I:	;caso 2 OCT
+		MOV AX,@DATA
+		MOV DS,AX
+		LEA DX,SEL2
+		MOV AH,09
+		INT 21H
+		CALL PE
+		CALL PRINTSLINE
+CAS2:
+		MOV AH,01
+		INT 21H
+		CMP AL,0DH
+		JZ EXITMIMP
+						;checar se esta fora dos limites
+		CMP AL,30H
+		JL IFERR
+		CMP AL,38H
+		JG IFERR
+						;se chegou aqui, nao houveram erros de leitura
+		
+		MOV TEMP,AL
+		MOV AL,OP1 
+		MOV CX, 8
+		MUL CX
+		MOV OP1,AL
+		MOV AL,TEMP
+		
+		;MUL OP1,010
+		SUB AL,30H
+		ADD OP1,AL		
+	
+		JMP CAS2
+	
+IFERRJ: JMP IFERR
+EXITMIMPJ: JMP EXITMIMP
+
 CAS1I:	;caso 1 BIN
 		MOV AX,@DATA
 		MOV DS,AX
@@ -376,12 +427,7 @@ CAS1I:	;caso 1 BIN
 		MOV AH,09
 		INT 21H
 		CALL PE
-		MOV AX,@DATA
-		MOV DS,AX
-		LEA DX,DIVIS
-		MOV AH,09
-		INT 21H
-		CALL PE
+		CALL PRINTSLINE
 CAS1:
 		MOV AH,01
 		INT 21H
@@ -466,11 +512,14 @@ OPADD PROC
 	ADD BL,OP1
 	
 	MOV OP1,BL
+	
+	CALL OUTPUT
 	RET
 OPADD ENDP
 
 OPSUB PROC
 	CALL PRINTOPINTR
+
 	MOV AX, @DATA
 	MOV DS,AX
 	LEA DX,I6
@@ -483,27 +532,25 @@ OPSUB PROC
 	MOV BL,OP1
 	MOV OP2,BL
 	MOV OP1,0
+	
 	CALL GETINPUTENC
 	MOV BL,OP1
 	CMP OP2,BL
 	JB NEGATIVO
+	
 	MOV BL,OP2
 	SUB BL,OP1
-	
 	MOV OP1,BL
+	CALL OUTPUT
 	RET
 	
-	NEGATIVO:
+NEGATIVO:
 	MOV BL,OP1
 	SUB BL,OP2
 	MOV OP1,BL
 	MOV OPA,1
 	CALL OUTPUT
-	;MOV DL,2DH
-	;MOV AH, 02h  ;imprime resultado na tela
-    ;INT 21H
-
-	
+	RET
 OPSUB ENDP
 
 OPMUL PROC
@@ -530,6 +577,7 @@ OPMUL PROC
 	MOV OP1,AL
 	MOV AL,TEMP
 	
+	CALL OUTPUT
 	RET
 OPMUL ENDP
 
@@ -548,6 +596,8 @@ OPDIV PROC
 	MOV OP2,BL
 	MOV OP1,0
 	CALL GETINPUTENC
+	CMP OP1,0
+	JZ DIVER
 	
 	MOV TEMP,AL
 	MOV AL,OP2
@@ -558,6 +608,13 @@ OPDIV PROC
 	MOV OP1,AL
 	MOV AL,TEMP
 	
+	CALL OUTPUT
+	RET
+	
+DIVER:
+	CALL PRERR
+	MOV OP1,0
+	CALL OUTPUT
 	RET
 OPDIV ENDP
 
@@ -568,6 +625,21 @@ OPM2E ENDP
 OPD2E PROC
 	RET
 OPD2E ENDP
+
+ENDCALC PROC
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,EXMES
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	CALL PE
+	CALL PRINTDLINE
+	CALL PE
+	
+	MOV AH,4CH
+	INT 21H
+
+ENDCALC ENDP
 
 GETINPUT PROC
 	
@@ -717,157 +789,324 @@ PRINTMEN PROC
 	INT 21H
 	
 	CALL PE
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	LEA DX,CMD12
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+	CALL PE
+	
 	RET
 PRINTMEN ENDP
 
 OUTPUT PROC
 
+
+
 		CALL PE
 
+
+
 		MOV AX, @DATA
+
 		MOV DS,AX
+
 		LEA DX,MODOUT
+
 		MOV AH,09 ;imprimir strings
+
 		INT 21H
+
 		
+
 		CALL PE
+
 		MOV AX,@DATA
+
 		MOV DS,AX
+
 		LEA DX,DIVIS
+
 		MOV AH,09
+
 		INT 21H
+
 		
+
 		CALL PE
+
 		
+
 		MOV AX, @DATA
+
 		MOV DS,AX
+
 		LEA DX,MOD1
+
 		MOV AH,09 ;imprimir strings
+
 		INT 21H
+
 		
+
 		CALL PE
+
 		
+
 		MOV AX, @DATA
+
 		MOV DS,AX
+
 		LEA DX,MOD2
+
 		MOV AH,09 ;imprimir strings
+
 		INT 21H
+
 		
+
 		CALL PE
+
 		
+
 		MOV AX, @DATA
+
 		MOV DS,AX
+
 		LEA DX,MOD3
+
 		MOV AH,09 ;imprimir strings
+
 		INT 21H
+
 		
+
 		CALL PE
+
 		
+
 		MOV AX, @DATA
+
 		MOV DS,AX
+
 		LEA DX,MOD4
+
 		MOV AH,09 ;imprimir strings
+
 		INT 21H
+
 		
+
 		CALL PE
-		MOV AX,@DATA
-		MOV DS,AX
-		LEA DX,DIVIS
-		MOV AH,09
-		INT 21H
+
+		CALL PRINTSLINE
+
 		
-		CALL PE
-		
+
 		MOV AH,01			;recebe comando (salva em AL)
+
 		INT 21H				;esperar o CONFIRMA? (ENTER)
 
-		
+		;CALL PE
 		CMP AL,31H			;verifica opção digitada
 		JE CASE1
+
 		CMP AL,32H
 		JE CASE2
+
 		CMP AL,33H
 		JE CASE3
+
 		CMP AL,34H
 		JE CASE4
-		
-		CALL PRERR
-		JMP OUTPUT
-		
-		CASE1:
-		MOV BX,2
-		CALL PE
-		JMP MAGIC
-		
-		CASE2:
-		MOV BX,10
-		CALL PE
-		JMP MAGIC
-		
-		CASE3:
-		MOV BX,16
-		CALL PE
-		JMP MAGIC
-		
-		CASE4:
-		MOV BX,8
-		CALL PE
-		JMP MAGIC
-		
-	MAGIC:
 	
-		CMP OPA,1
-		JE DIMM
+		CALL PRERR
+
+		JMP OUTPUT
+
+		CASE1:
 		
+		CALL PE
+		;MOV BX,2
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,SEL1
+		MOV AH,09 ;imprimir strings
+		INT 21H
+		CALL PE
+		CALL PRINTDLINE
+
+		MOV BX,2
+		JMP MAGIC
+
+		
+
+		CASE2:
+
+		
+		CALL PE
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,SEL2
+		MOV AH,09 ;imprimir strings
+		INT 21H
+		CALL PE
+		CALL PRINTDLINE
+		
+		MOV BX,8
+		JMP MAGIC
+
+		
+
+		CASE3:
+
+		CALL PE
+		;MOV BX,10
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,SEL3
+		MOV AH,09 ;imprimir strings
+		INT 21H
+		CALL PE
+		CALL PRINTDLINE
+		
+		MOV BX,10
+		JMP MAGIC
+
+		
+
+		CASE4:
+
+		CALL PE
+		;MOV BX,16
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,SEL4
+		MOV AH,09 ;imprimir strings
+		INT 21H
+		CALL PE
+		CALL PRINTDLINE
+
+		MOV BX,16
+		JMP MAGIC
+
+		
+
+	MAGIC:
+
+	
+
+		CMP OPA,1
+
+		JE DIMM
+
+		
+
         MOV AL, OP1     ;move operador 1 para al            
 
+
+
         MOV CL, AL		;move al para cl
-        MOV AX, 0       ;limpa ax     
+
+        ;MOV AX, 0       ;limpa ax    
+		XOR AX,AX
+
         MOV AL, CL      ;retorna cl para al     
 
 
-        MOV CX, 0       ;inicializa o contador       
-        MOV DX, 0       ;limpa dx
+
+
+
+        ;MOV CX, 0       ;inicializa o contador
+		XOR CX,CX
+
+        ;MOV DX, 0       ;limpa dx
+		XOR DX,DX
+
 
         DVD2:   		;divide por 16                      
+
                          
+
             DIV BX      ; divide ax por bx, resultado da div em ax   
+
             PUSH DX    	;resto fica em dx e epilha
 
+
+
             ADD CX, 1   ;adiciona 1 ao contador
-            MOV DX, 0   ;limpa dx
+
+            ;MOV DX, 0   ;limpa dx
+			XOR DX,DX
+
             CMP AX, 0   ;compara o resultado da div com 0
+
             JNE DVD2   	;se o resultado for !=0 faz a operação novamente
 
+
+
         GHEX:
-            MOV DX, 0   ;limpa DX 
+
+            ;MOV DX, 0   ;limpa DX 
+			XOR DX,DX
+
             POP DX   	;copia o conteúdo da memória indicado por dx
+
             ADD DL, 30h ;adiciona 30h em dl(conteudo de dx) devido a tabela ascii   
 
+
+
             CMP DL, 39h	;compara
+
             JG MHEX	;Caso o valor ultrapassar 9 pula para função mhex para descobrir letra equivalente
+
+
 
         PRINTHEX:        
 
+
+
             MOV AH, 02h  ;imprime resultado na tela
+
             INT 21H  
 
+
+
             LOOP GHEX    ;executa ghex decrementando cx até que este seja 0        
+
                                     
+
             JMP STOP	;para o programa
+
         MHEX:
+
             ADD DL, 7h	;adiciona 7 devido ao espaço entre as letras e números da tabela ascii
+
             JMP PRINTHEX            
+
         STOP:
+
         MOV AH,4CH
+
 		INT 21H
+
 		
+
 	DIMM:
+
 	MOV DL,2DH
+
 	MOV AH, 02h  ;imprime resultado na tela
+
     INT 21H
+
 	MOV OPA,0
+
 	JMP MAGIC
+
+
 
 OUTPUT ENDP
 

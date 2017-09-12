@@ -22,9 +22,17 @@ TITLE CALCULADORA SHOW
 	OP1		DB 0H
 	OP2		DB 0H
 	OPA		DB 0H
+	OLOP1	DB 0H
 	RESUL	DB 0H
-	DIVIS 	DB "-----------------------------------------$"
-	DDIVIS	DB "=========================================$"
+	CPRINT	DB 0H
+	
+	OP1B	DB 0H
+	OP2B	DB 0H
+	RESULB	DB 0H
+	FOPBS	DB 0H	;first operand base set?
+	
+	DIVIS 	DB "--------------------------------------------$"
+	DDIVIS	DB "============================================$"
 	MODENT	DB "Modos de entrada:$"
 	MODOUT	DB "Modos de saida:$"
 	MOD1	DB "  1 - Binario$"
@@ -32,14 +40,18 @@ TITLE CALCULADORA SHOW
 	MOD3	DB "  3 - Decimal$"
 	MOD4	DB "  4 - Hexadecimal$"
 	ERRMSG	DB "Valor fora dos limites$"
+	
 	CMOD	DB 0H
 	TEMP	DB 0H
+	
 	SEL1	DB "Modo BINARIO selecionado!$"
 	SEL2	DB "Modo OCTAL selecionado!$"
 	SEL3	DB "Modo DECIMAL selecionado!$"
 	SEL4	DB "Modo HEXADEC selecionado!$"
+	
 	TEMPM	DB 0H
 	MULTIB	DB 0H
+	
 	SEL		DB "Calculando operacao $"
 	I1		DB "AND$"
 	I2		DB "OR$"
@@ -52,8 +64,25 @@ TITLE CALCULADORA SHOW
 	I9		DB "Multiplicacao por potencia de 2$"
 	I10		DB "Divisao por potencia de 2$"
 	EXMES	DB "Encerrando calculadora...$"
+	
 	CMULVAL	DB 0H
 	DELFLAG	DB 0H
+	
+	OPE1	DB " AND $"
+	OPE2	DB " OR $"
+	OPE3	DB " XOR $"
+	OPE4	DB " NOT $"
+	OPE5	DB " + $"
+	OPE6	DB " - $"
+	OPE7	DB " x $"
+	OPE8	DB " / $"
+	OPE9	DB " x2e $"
+	OPE10	DB " /2e $"
+	
+	BAS1	DB "(2)$"
+	BAS2	DB "(8)$"
+	BAS4	DB "(16)$"
+	CBAS	DB 0H
 .CODE
 BEGIN PROC
 	MOV AX, @DATA
@@ -73,6 +102,8 @@ BEGIN PROC
 	CALL PRINTMEN
 	
 IMPINT:	
+	MOV FOPBS,0
+	
 	MOV AX, @DATA
 	MOV DS,AX
 	LEA DX,DDIVIS		;imprime linhas duplas
@@ -289,6 +320,10 @@ CAS4I:
 		LEA DX,SEL4
 		MOV AH,09
 		INT 21H
+		
+		MOV CBAS,4
+		CALL WRITEBASE
+		
 		CALL PE
 		CALL PRINTSLINE
 CAS4:
@@ -372,6 +407,10 @@ CAS3I:	;caso 3 DECIM
 		LEA DX,SEL3
 		MOV AH,09
 		INT 21H
+		
+		MOV CBAS,3
+		CALL WRITEBASE
+		
 		CALL PE
 		CALL PRINTSLINE
 CAS3:
@@ -412,6 +451,10 @@ CAS2I:	;caso 2 OCT
 		LEA DX,SEL2
 		MOV AH,09
 		INT 21H
+		
+		MOV CBAS,2
+		CALL WRITEBASE
+		
 		CALL PE
 		CALL PRINTSLINE
 CAS2:
@@ -453,6 +496,10 @@ CAS1I:	;caso 1 BIN
 		LEA DX,SEL1
 		MOV AH,09
 		INT 21H
+		
+		MOV CBAS,1
+		CALL WRITEBASE
+		
 		CALL PE
 		CALL PRINTSLINE
 CAS1:
@@ -507,6 +554,8 @@ EXITMIMP:
 	MOV AH,09
 	INT 21H
 	CALL PE
+	
+	MOV FOPBS,1
 	
 	MOV AL,TEMP
 	RET
@@ -624,7 +673,7 @@ OPADD PROC
 	
 	MOV OP1,BL
 	
-	CALL OUTPUT
+	CALL COUTPUT
 	RET
 OPADD ENDP
 
@@ -795,6 +844,8 @@ GET2OPS PROC
 	MOV OP2,BL
 	MOV OP1,0
 	CALL GETINPUTENC
+	MOV BL,OP1
+	MOV OLOP1,BL
 	RET
 GET2OPS ENDP
 
@@ -1202,5 +1253,243 @@ OUTPUT PROC
 	MOV OPA,0
 	JMP MAGIC
 OUTPUT ENDP
+
+COUTPUT PROC
+		MOV BX,2
+		CMP CBAS,1
+		JE CMAGIC
+		
+		MOV BX,8
+		CMP CBAS,2
+		JE CMAGIC
+		
+		MOV BX,10
+		CMP CBAS,3
+		JE CMAGIC
+		
+		MOV BX,16
+
+	CMAGIC:
+		CMP OPA,1
+		JE CDIMM
+
+        MOV AL, CPRINT     ;move operador 1 para al            
+
+        MOV CL, AL		;move al para cl
+        ;MOV AX, 0       ;limpa ax    
+		XOR AX,AX
+
+        MOV AL, CL      ;retorna cl para al     
+
+        ;MOV CX, 0       ;inicializa o contador
+		XOR CX,CX
+
+        ;MOV DX, 0       ;limpa dx
+		XOR DX,DX
+
+        CDVD2:   		;divide por 16
+            DIV BX      ; divide ax por bx, resultado da div em ax   
+
+            PUSH DX    	;resto fica em dx e epilha
+
+            ADD CX, 1   ;adiciona 1 ao contador
+
+            ;MOV DX, 0   ;limpa dx
+			XOR DX,DX
+
+            CMP AX, 0   ;compara o resultado da div com 0
+
+            JNE CDVD2   	;se o resultado for !=0 faz a operação novamente
+
+        CGHEX:
+            ;MOV DX, 0   ;limpa DX 
+			XOR DX,DX
+
+            POP DX   	;copia o conteúdo da memória indicado por dx
+
+            ADD DL, 30h ;adiciona 30h em dl(conteudo de dx) devido a tabela ascii   
+
+
+            CMP DL, 39h	;compara
+
+            JG CMHEX	;Caso o valor ultrapassar 9 pula para função mhex para descobrir letra equivalente
+
+        CPRINTHEX:        
+            MOV AH, 02h  ;imprime resultado na tela
+
+            INT 21H
+
+            LOOP CGHEX    ;executa ghex decrementando cx até que este seja 0        
+
+            JMP CSTOP	;para o programa - NAO NAO NAO NAO NAO
+
+        CMHEX:
+            ADD DL, 7h	;adiciona 7 devido ao espaço entre as letras e números da tabela ascii
+
+            JMP CPRINTHEX            
+
+        CSTOP:
+						;imprimir a base
+		CMP CBAS,1
+		JE PB1
+		CMP CBAS,2
+		JE PB2
+		CMP CBAS,4
+		JE PB4
+		JMP ENDCOUT
+	PB1:
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,BAS1
+		MOV AH,09 ;imprimir strings
+		INT 21H
+		JMP ENDCOUT
+	PB2:
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,BAS2
+		MOV AH,09 ;imprimir strings
+		INT 21H
+		JMP ENDCOUT
+	PB4:
+		MOV AX, @DATA
+		MOV DS,AX
+		LEA DX,BAS4
+		MOV AH,09 ;imprimir strings
+		INT 21H
+	ENDCOUT:
+		RET
+        ;MOV AH,4CH
+		;INT 21H
+		
+	CDIMM:
+	MOV DL,2DH
+	MOV AH, 02h  ;imprime resultado na tela
+    INT 21H
+	MOV OPA,0
+	JMP MAGIC
+COUTPUT ENDP
+
+NEWOUTPUT PROC
+	CALL PRINTDLINE
+	
+	MOV BL,OLOP1
+	MOV CPRINT,BL
+	MOV BL,OP1B
+	MOV CBAS,BL
+	CALL COUTPUT
+	
+	MOV AX, @DATA
+	MOV DS,AX
+	
+	;IMPRIMIR OPERADOR
+	CMP CCMD,31H
+	JE OOP1
+	CMP CCMD,32H
+	JE OOP2
+	CMP CCMD,33H
+	JE OOP3
+	CMP CCMD,34H
+	JE OOP4
+	CMP CCMD,35H
+	JE OOP5
+	CMP CCMD,36H
+	JE OOP6
+	CMP CCMD,37H
+	JE OOP7
+	CMP CCMD,38H
+	JE OOP8
+	CMP CCMD,39H
+	JE OOP9
+	CMP CCMD,41H
+	JE OOP10
+	CMP CCMD,61H
+	JE OOP9
+	JMP OOP10
+	
+OOP1:
+	LEA DX,OPE1
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP2:
+	LEA DX,OPE2
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP3:
+	LEA DX,OPE3
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP4:
+	LEA DX,OPE4
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP5:
+	LEA DX,OPE5
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP6:
+	LEA DX,OPE6
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP7:
+	LEA DX,OPE7
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP8:
+	LEA DX,OPE8
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP9:
+	LEA DX,OPE9
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	JMP POP2
+OOP10:
+	LEA DX,OPE10
+	MOV AH,09 ;imprimir strings
+	INT 21H
+	
+POP2:
+	MOV BL,OP2
+	MOV CPRINT,BL
+	MOV BL,OP2B
+	MOV CBAS,BL
+	CALL COUTPUT
+	
+	MOV AH,2
+	MOV DL,3DH
+	INT 21H
+	
+	MOV BL,OP1
+	MOV CPRINT,BL
+	MOV BL,RESULB
+	MOV CBAS,BL
+	CALL COUTPUT
+	
+	CALL PE
+	RET
+NEWOUTPUT ENDP
+
+WRITEBASE PROC
+	CMP FOPBS,1
+	JE WILLSET2
+WILLSET1:
+	MOV BL,CBAS
+	MOV OP1B,BL
+	JMP FINISHEDSET
+WILLSET2:
+	MOV BL,CBAS
+	MOV OP2B,BL
+FINISHEDSET:
+	RET
+WRITEBASE ENDP
 
 END BEGIN

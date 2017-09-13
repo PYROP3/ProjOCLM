@@ -4,61 +4,62 @@ TITLE CALCULADORA SHOW
 .DATA
 	LF		EQU 0AH
 	CR		EQU 0DH
-	TITULO 	DB "              Calculadora$"
-	DIGITE 	DB "Comandos:$"
-	CMD1	DB "  1 - AND$"									;2
-	CMD2	DB "  2 - OR$"									;2
-	CMD3	DB "  3 - XOR$"									;2
-	CMD4	DB "  4 - NOT$"									;1
-	CMD5	DB "  5 - Soma$"								;2
-	CMD6	DB "  6 - Subtracao$"							;2
-	CMD7	DB "  7 - Multiplicacao$"						;2
-	CMD8	DB "  8 - Divisao$"								;2
-	CMD9	DB "  9 - Multiplicacao por 2 exp$"				;1
-	CMD10	DB "  A - Divisao por 2 exp$"					;1
-	CMD11	DB "  B - Ajuda (imprimir comandos novamente)$"	;0
-	CMD12	DB "  E - Encerrar calculadora$"				;0
+	BOUNDUP	DB "=======================================================$"
+	TITULO 	DB "|                     Calculadora                     |$"
+	DIGITE 	DB "|Comandos:                                            |$"
+	CMD1	DB "|  1 - AND                                            |$"	;2
+	CMD2	DB "|  2 - OR                                             |$"	;2
+	CMD3	DB "|  3 - XOR                                            |$"	;2
+	CMD4	DB "|  4 - NOT                                            |$"	;1
+	CMD5	DB "|  5 - Soma                                           |$"	;2
+	CMD6	DB "|  6 - Subtracao                                      |$"	;2
+	CMD7	DB "|  7 - Multiplicacao                                  |$"	;2
+	CMD8	DB "|  8 - Divisao                                        |$"	;2
+	CMD9	DB "|  9 - Multiplicacao por 2 exp                        |$"	;1
+	CMD10	DB "|  A - Divisao por 2 exp                              |$"	;1
+	CMD11	DB "|  B - Ajuda (imprimir comandos novamente)            |$"	;0
+	CMD12	DB "|  E - Encerrar calculadora                           |$"	;0
 	CCMD	DB 0H
 	OP1		DB 0H
 	OP2		DB 0H
 	OPA		DB 0H
 	RESUL	DB 0H
-	DIVIS 	DB "-----------------------------------------$"
-	DDIVIS	DB "=========================================$"
-	MODENT	DB "Modos de entrada:$"
-	MODOUT	DB "Modos de saida:$"
-	MOD1	DB "  1 - Binario$"
-	MOD2	DB "  2 - Octal$"
-	MOD3	DB "  3 - Decimal$"
-	MOD4	DB "  4 - Hexadecimal$"
-	ERRMSG	DB "Valor fora dos limites$"
+	DIVIS 	DB "|-----------------------------------------------------|$"
+	DDIVIS	DB "|=====================================================|$"
+	MODENT	DB "|Modos de entrada:                                    |$"
+	MODOUT	DB "|Modos de saida:                                      |$"
+	MOD1	DB "|  1 - Binario                                        |$"
+	MOD2	DB "|  2 - Octal                                          |$"
+	MOD3	DB "|  3 - Decimal (DEFAULT)                              |$"
+	MOD4	DB "|  4 - Hexadecimal                                    |$"
+	ERRMSG	DB "|              Valor fora dos limites                 |$"
 	CMOD	DB 0H
 	TEMP	DB 0H
-	SEL1	DB "Modo BINARIO selecionado!$"
-	SEL2	DB "Modo OCTAL selecionado!$"
-	SEL3	DB "Modo DECIMAL selecionado!$"
-	SEL4	DB "Modo HEXADEC selecionado!$"
+	SEL1	DB "|Modo BINARIO selecionado!                            |$"
+	SEL2	DB "|Modo OCTAL selecionado!                              |$"
+	SEL3	DB "|Modo DECIMAL selecionado!                            |$"
+	SEL4	DB "|Modo HEXADEC selecionado!                            |$"
 	TEMPM	DB 0H
 	MULTIB	DB 0H
-	SEL		DB "Calculando operacao $"
-	I1		DB "AND$"
-	I2		DB "OR$"
-	I3		DB "XOR$"
-	I4		DB "NOT$"
-	I5		DB "Soma$"
-	I6		DB "Subtracao$"
-	I7		DB "Multiplicacao$"
-	I8		DB "Divisao$"
-	I9		DB "Multiplicacao por potencia de 2$"
-	I10		DB "Divisao por potencia de 2$"
-	EXMES	DB "Encerrando calculadora...$"
+	SEL		DB "|Calculando operacao $"
+	I1		DB "AND                              |$"
+	I2		DB "OR                               |$"
+	I3		DB "XOR                              |$"
+	I4		DB "NOT                              |$"
+	I5		DB "Soma                             |$"
+	I6		DB "Subtracao                        |$"
+	I7		DB "Multiplicacao                    |$"
+	I8		DB "Divisao                          |$"
+	I9		DB "Multiplicacao por potencia de 2  |$"
+	I10		DB "Divisao por potencia de 2        |$"
+	EXMES	DB "|              Encerrando calculadora...              |$"
 	CMULVAL	DB 0H
 	DELFLAG	DB 0H
 .CODE
 BEGIN PROC
 	MOV AX, @DATA
 	MOV DS,AX
-	LEA DX,DDIVIS
+	LEA DX,BOUNDUP
 	MOV AH,09 ;imprimir strings
 	INT 21H
 	
@@ -69,6 +70,10 @@ BEGIN PROC
 	LEA DX,TITULO
 	MOV AH,09 ;imprimir strings
 	INT 21H
+	
+	CALL PE
+	
+	CALL PRINTDLINE
 	
 	CALL PRINTMEN
 	
@@ -219,7 +224,7 @@ BEINP:
 	MOV AH,09 ;imprimir strings
 	INT 21H
 	
-	CALL PE
+	CALL PRINTSLINE
 	
 	MOV AX, @DATA
 	MOV DS,AX
@@ -256,15 +261,39 @@ BEINP:
 	
 	MOV DX,03EH			;imprime seta
 	INT 21H
-	MOV AL,32H			;default comando 2
+	MOV AL,33H			;default comando 2
+	MOV TEMPM,33H
+	MOV DX,03EH			;imprime seta
+	INT 21H
+	
 ASKA:
+
+	MOV AH,2
+	;XOR DX,DX
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
+	;MOV AH,2
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
+	MOV DX,03EH			;imprime seta
+	INT 21H
+	
+	;XOR DX,DX
+	;MOV AH,2
+	;MOV DL,TEMPM		;imprime ultimo valor
+	;INT 21H
+	
 	MOV AH,01			;recebe comando (salva em AL)
-	INT 21H				
+	INT 21H
+	
 	CMP AL,0DH
 	JZ GOTMO
 	MOV TEMPM,AL
 	JMP ASKA
 GOTMO:
+	
 	MOV AL,TEMPM
 	MOV CMOD,AL
 	;CALL PE
@@ -291,6 +320,11 @@ CAS4I:
 		INT 21H
 		CALL PE
 		CALL PRINTSLINE
+		MOV AH,2
+	MOV DX,30H			;imprime zero
+	INT 21H
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
 CAS4:
 		MOV CMULVAL,16
 		;MOV HFLAG,0
@@ -374,6 +408,11 @@ CAS3I:	;caso 3 DECIM
 		INT 21H
 		CALL PE
 		CALL PRINTSLINE
+		MOV AH,2
+	MOV DX,30H			;imprime zero
+	INT 21H
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
 CAS3:
 		MOV CMULVAL,10
 		
@@ -414,6 +453,11 @@ CAS2I:	;caso 2 OCT
 		INT 21H
 		CALL PE
 		CALL PRINTSLINE
+		MOV AH,2
+	MOV DX,30H			;imprime zero
+	INT 21H
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
 CAS2:
 		MOV CMULVAL,8
 		
@@ -455,6 +499,11 @@ CAS1I:	;caso 1 BIN
 		INT 21H
 		CALL PE
 		CALL PRINTSLINE
+		MOV AH,2
+	MOV DX,30H			;imprime zero
+	INT 21H
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
 CAS1:
 		MOV CMULVAL,2
 		

@@ -70,14 +70,17 @@ BEGIN PROC
 	LEA DX,TITULO
 	MOV AH,09 ;imprimir strings
 	INT 21H
-	
+
 	CALL PE
+
+
+IMPINT:	
+	
 	
 	CALL PRINTDLINE
 	
 	CALL PRINTMEN
 	
-IMPINT:	
 	MOV AX, @DATA
 	MOV DS,AX
 	LEA DX,DDIVIS		;imprime linhas duplas
@@ -125,14 +128,14 @@ IMPINT:
 	JE CMU2
 	CMP AL,41H	;A
 	JE CDV2
-	CMP AL,42H	;B
-	JE CHEL
+	;CMP AL,42H	;B
+	;JE CHEL
 	CMP AL,45H	;E
 	JE CENC
 	CMP AL,61H	;a
 	JE CDV2
-	CMP AL,62H	;b
-	JE CHEL
+	;CMP AL,62H	;b
+	;JE CHEL
 	CMP AL,65H	;e
 	JE CENC
 	;se nenhum comando foi achado, ele nao existe
@@ -169,9 +172,9 @@ CMU2:
 CDV2:
 	CALL OPD2E
 	JMP PRRES
-CHEL:
-	CALL PRINTMEN
-	JMP IMPINT
+;CHEL:
+	;CALL PRINTMEN
+	;JMP IMPINT
 CENC:
 	CALL ENDCALC
 PRRES:				;aqui que tem que adicionar o negocinho
@@ -185,8 +188,8 @@ PRRES:				;aqui que tem que adicionar o negocinho
 					;print results
 	;CALL PE
 	;CALL PRINTDLINE
-	
-	;JMP IMPINT		;REMOVER COMENTARIO ANTES DE ENVIAR PLMDDS
+	CALL PE
+	JMP IMPINT		;REMOVER COMENTARIO ANTES DE ENVIAR PLMDDS
 	
 	MOV AH,4CH
 	INT 21H
@@ -224,6 +227,7 @@ BEINP:
 	MOV AH,09 ;imprimir strings
 	INT 21H
 	
+	CALL PE
 	CALL PRINTSLINE
 	
 	MOV AX, @DATA
@@ -1022,13 +1026,13 @@ PRINTMEN PROC
 	MOV AH,09 ;imprimir strings
 	INT 21H
 	
-	CALL PE
+	;CALL PE
 	
-	MOV AX, @DATA
-	MOV DS,AX
-	LEA DX,CMD11
-	MOV AH,09 ;imprimir strings
-	INT 21H
+	;MOV AX, @DATA
+	;MOV DS,AX
+	;LEA DX,CMD11
+	;MOV AH,09 ;imprimir strings
+	;INT 21H
 	
 	CALL PE
 	
@@ -1133,6 +1137,7 @@ OUTPUT PROC
 		INT 21H
 		CALL PE
 		CALL PRINTDLINE
+		CALL LIKE
 
 		MOV BX,2
 		JMP MAGIC
@@ -1147,7 +1152,8 @@ OUTPUT PROC
 		INT 21H
 		CALL PE
 		CALL PRINTDLINE
-		
+		CALL LIKE
+
 		MOV BX,8
 		JMP MAGIC
 
@@ -1162,6 +1168,7 @@ OUTPUT PROC
 		INT 21H
 		CALL PE
 		CALL PRINTDLINE
+		CALL LIKE
 		
 		MOV BX,10
 		JMP MAGIC
@@ -1177,11 +1184,13 @@ OUTPUT PROC
 		INT 21H
 		CALL PE
 		CALL PRINTDLINE
+		CALL LIKE
 
 		MOV BX,16
 		JMP MAGIC
 
 	MAGIC:
+
 		CMP OPA,1
 		JE DIMM
 
@@ -1241,8 +1250,10 @@ OUTPUT PROC
             JMP PRINTHEX            
 
         STOP:
-        MOV AH,4CH
-		INT 21H
+
+        RET
+       	;MOV AH,4CH
+		;INT 21H
 		
 	DIMM:
 	MOV DL,2DH
@@ -1251,5 +1262,18 @@ OUTPUT PROC
 	MOV OPA,0
 	JMP MAGIC
 OUTPUT ENDP
+
+LIKE PROC
+		MOV AH,2
+		MOV DX,20H		;imprimir espaco em branco
+		INT 21H
+		MOV AH,2
+		MOV DX,3DH		;imprimir sinal de igual
+		INT 21H
+		MOV AH,2
+		MOV DX,20H		;imprimir espaco em branco
+		INT 21H
+	RET
+LIKE ENDP
 
 END BEGIN

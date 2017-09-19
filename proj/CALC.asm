@@ -1100,12 +1100,30 @@ OUTPUT PROC
 		MOV DX,03EH			;imprime seta
 		INT 21H
 	ASKAO:
-		MOV AH,01			;recebe comando (salva em AL)
-		INT 21H				
-		CMP AL,0DH
-		JZ GOTMOO
-		MOV TEMPM,AL
-		JMP ASKAO
+	MOV AH,2
+	;XOR DX,DX
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
+	;MOV AH,2
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
+	MOV DX,08H			;apaga ultimo valor
+	INT 21H
+	MOV DX,03EH			;imprime seta
+	INT 21H
+
+	;XOR DX,DX
+	;MOV AH,2
+	;MOV DL,TEMPM		;imprime ultimo valor
+	;INT 21H
+	
+	MOV AH,01			;recebe comando (salva em AL)
+	INT 21H
+	
+	CMP AL,0DH
+	JZ GOTMOO
+	MOV TEMPM,AL
+	JMP ASKAO
 	GOTMOO:
 	
 		MOV AL,TEMPM

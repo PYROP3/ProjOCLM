@@ -59,8 +59,6 @@ TITLE CALCULADORA SHOW
 	DELFLAG	DB 0H
 .CODE
 BEGIN PROC
-	;inserir 	MOV AX, @DATA
-	;				MOV DS,AX
 	MOV AX, @DATA
 	MOV DS,AX
 
@@ -99,7 +97,6 @@ IMPINT:
 	MOV OP1,0
 	MOV OP1,0			;reseta os operandos
 	
-	;CALL GETINPUTENC	;reposicionar nas funcoes
 	MOV AL,CCMD
 
 	;comeca a comparar o comando, verificar a operacao a ser executada
@@ -165,24 +162,12 @@ CMU2:
 CDV2:
 	CALL OPD2E
 	JMP PRRES
-;CHEL:
-	;CALL PRINTMEN
-	;JMP IMPINT
 CENC:
 	CALL ENDCALC
-PRRES:				;aqui que tem que adicionar o negocinho
-	;MOV AH,2
-	;MOV DL,3DH
-	;INT 21H
-	;MOV AH,2
-	;MOV DL,OP1		;get results from op1
-	;ADD DL,30H
-	;INT 21H
-					;print results
-	;CALL PE
-	;CALL PRINTDLINE
+PRRES:
+
 	CALL PE
-	JMP IMPINT		;REMOVER COMENTARIO ANTES DE ENVIAR PLMDDS
+	JMP IMPINT
 	
 	MOV AH,4CH
 	INT 21H
@@ -259,21 +244,14 @@ BEINP:
 ASKA:
 
 	MOV AH,2
-	;XOR DX,DX
 	MOV DX,08H			;apaga ultimo valor
 	INT 21H
-	;MOV AH,2
 	MOV DX,08H			;apaga ultimo valor
 	INT 21H
 	MOV DX,08H			;apaga ultimo valor
 	INT 21H
 	MOV DX,03EH			;imprime seta
 	INT 21H
-	
-	;XOR DX,DX
-	;MOV AH,2
-	;MOV DL,TEMPM		;imprime ultimo valor
-	;INT 21H
 	
 	MOV AH,01			;recebe comando (salva em AL)
 	INT 21H
@@ -332,85 +310,11 @@ M4:
 	CALL PRINTSLINE
 	JMP GOK
 GOK:
-	;MOV CMOD,AL
 	RET
 GETINENCOD ENDP
 
 GETINPUTENC PROC
 BENINP:
-;	MOV TEMP,AL
-;	
-;	LEA DX,MODENT
-;	MOV AH,09 ;imprimir strings
-;	INT 21H
-;	
-;	CALL PE
-;	CALL PRINTSLINE
-;	
-;	LEA DX,MOD1
-;	MOV AH,09 ;imprimir strings
-;	INT 21H
-;	
-;	CALL PE
-;	
-;	LEA DX,MOD2
-;	MOV AH,09 ;imprimir strings
-;	INT 21H
-;	
-;	CALL PE
-;	
-;	LEA DX,MOD3
-;	MOV AH,09 ;imprimir strings
-;	INT 21H
-;	
-;	CALL PE
-;	
-;	LEA DX,MOD4
-;	MOV AH,09 ;imprimir strings
-;	INT 21H
-;	
-;	CALL PE
-;	CALL PRINTSLINE
-;	
-;	MOV DX,03EH			;imprime seta
-;	INT 21H
-;	MOV AL,33H			;default comando 2
-;	MOV TEMPM,33H
-;	MOV DX,03EH			;imprime seta
-;	INT 21H
-;	
-;ASKA:
-;
-;	MOV AH,2
-;	;XOR DX,DX
-;	MOV DX,08H			;apaga ultimo valor
-;	INT 21H
-;	;MOV AH,2
-;	MOV DX,08H			;apaga ultimo valor
-;	INT 21H
-;	MOV DX,08H			;apaga ultimo valor
-;	INT 21H
-;	MOV DX,03EH			;imprime seta
-;	INT 21H
-;	
-;	;XOR DX,DX
-;	;MOV AH,2
-;	;MOV DL,TEMPM		;imprime ultimo valor
-;	;INT 21H
-;	
-;	MOV AH,01			;recebe comando (salva em AL)
-;	INT 21H
-	
-;	CMP AL,0DH
-;	JZ GOTMO
-;	MOV TEMPM,AL
-;	JMP ASKA
-;GOTMO:
-	
-;	MOV AL,TEMPM
-;	MOV CMOD,AL
-	;CALL PE
-	
 	CMP AL,59H
 	JB BODH
 	AND AL,0DFH
@@ -431,12 +335,6 @@ BODH:
 	JMP IFERR
 		;caso 4 HEXA
 CAS4I:	
-	;LEA DX,SEL4
-	;MOV AH,09
-	;INT 21H
-	;CALL PE
-	;CALL PRINTSLINE
-	
 	MOV AH,2
 	MOV DX,30H			;imprime zero
 	INT 21H
@@ -449,9 +347,6 @@ CAS4:
 		INT 21H
 		CMP AL,0DH
 		JE JSHCT		;termina de receber o operando se receber CR
-		;CALL DELCHAR
-		;CMP DELFLAG,1
-		;JE CAS4
 						;checar se esta fora dos limites
 		CMP AL,08H
 		JE CAS4DEL
@@ -486,33 +381,15 @@ HOKI:	SUB AL,57H		;X - "a" + 10
 		JMP HOK
 HOKN:	SUB AL,30H		;X - "0"
 HOK:
-		;JG NIFER
 						;se chegou aqui, nao houveram erros de leitura
-		;MOV TEMP,AL
-						;4 deslocamentos pra esquerda OU multiplica por 16
 		CALL GETINPUT
-		
-		;MOV TEMP,AL
-		;MOV AL,OP1 
-		;MOV CX, 16
-		;MUL CX
-		;MOV OP1,AL
-		;MOV AL,TEMP
-		
-		;MUL OP1,010
-		;SUB AL,30H
-		ADD OP1,AL		
+		ADD OP1,AL
 						
 		JMP CAS2
-	;JMP EXITMIMP
 NIFER:
 	JMP CAS4CLR
-	;CALL PRERR
-	;JMP BENINP
 JSHCT:
 	JMP EXITMIMP
-;CAS3IJ:
-	;JMP CAS3I
 CAS4DEL:
 	CALL DELCHARRR
 	CALL SDCHAR
@@ -522,12 +399,6 @@ CAS4CLR:
 	JMP CAS4
 
 CAS3DEL:
-	;MOV AH,0
-	;MOV AL,OP1
-
-	;MOV CX,10
-	;DIV CL
-	;MOV OP1,AL
 	CALL DELCHARRR
 	CALL SDCHAR
 	JMP CAS3
@@ -537,12 +408,6 @@ CAS3CLR:
 
 	
 CAS3I:	;caso 3 DECIM
-	;LEA DX,SEL3
-	;MOV AH,09
-	;INT 21H
-	;CALL PE
-	;CALL PRINTSLINE
-	
 	MOV AH,2
 	MOV DX,30H			;imprime zero
 	INT 21H
@@ -558,10 +423,6 @@ CAS3:
 		CMP AL,0DH
 		JZ EXITMIMPJ	;termina de receber um operando se receber CR
 
-		;CALL DELCHAR
-		;CMP DELFLAG,1
-		;JE CAS3
-		
 		CMP AL,08H		;checar se é o DEL
 		JE CAS3DEL
 						;checar se esta fora dos limites
@@ -571,28 +432,11 @@ CAS3:
 		JA CAS3CLR
 						;se chegou aqui, nao houveram erros de leitura
 		CALL GETINPUT
-		;MOV TEMP,AL
-		;MOV AL,OP1 
-		;MOV CX,10
-		;MUL CX
-		;MOV OP1,AL
-		;MOV AL,TEMP
-		
-		;MUL OP1,010
 		
 		SUB AL,30H
 		ADD OP1,AL
-		;SUB OP1,30H
-
 		JMP CAS3		;receber proximo caracter
-	;JMP EXITMIMP
 CAS2I:	;caso 2 OCT
-	;LEA DX,SEL2
-	;MOV AH,09
-	;INT 21H
-	;CALL PE
-	;CALL PRINTSLINE
-	
 	MOV AH,2
 	MOV DX,30H			;imprime zero
 	INT 21H
@@ -605,9 +449,6 @@ CAS2:
 		INT 21H
 		CMP AL,0DH
 		JE EXITMIMPJ
-		;CALL DELCHAR
-		;CMP DELFLAG,1
-		;JE CAS2
 						;checar se esta fora dos limites
 		CMP AL,08H
 		JE CAS2DEL
@@ -635,12 +476,6 @@ IFERRJ: JMP IFERR
 EXITMIMPJ: JMP EXITMIMP
 
 CAS1I:	;caso 1 BIN
-	;LEA DX,SEL1
-	;MOV AH,09
-	;INT 21H
-	;CALL PE
-	;CALL PRINTSLINE
-	
 	MOV AH,2
 	MOV DX,30H			;imprime zero
 	INT 21H
@@ -654,9 +489,6 @@ CAS1:
 
 		CMP AL,0DH
 		JE EXITMIMP
-		;CALL DELCHAR
-		;CMP DELFLAG,1
-		;JE CAS1
 						;checar se esta fora dos limites
 		CMP AL,08H
 		JE CAS1DEL
@@ -669,7 +501,6 @@ CAS1:
 		
 		CALL GETINPUT
 		
-		;MUL OP1,010
 		SUB AL,30H
 		ADD OP1,AL		
 	
@@ -681,33 +512,24 @@ CAS1DEL:
 CAS1CLR:
 	CALL SDCHAR2
 	JMP CAS1
-	;JMP EXITMIMP
 IFERR:
-	;CALL PRERR
 	CALL SDCHAR
 	JMP BENINP
 EXITMIMP:
-	;MOV AX,@DATA
-	;MOV DS,AX
 	LEA DX,DIVIS
 	MOV AH,09
 	INT 21H
 	CALL PE
 	
-	;MOV AL,TEMP
 	RET
 GETINPUTENC ENDP
 
 DELCHARRR PROC
 	XOR AX,AX
-	;MOV AH,0
 	MOV AL,OP1
-	;CBW AL
 
 	XOR CX,CX
 	MOV CL,CMULVAL
-	;CBW BL
-	;MOV BL,10
 
 	DIV CL
 
@@ -718,8 +540,6 @@ DELCHARRR ENDP
 
 SDCHAR PROC
 	MOV AH,2
-	;MOV DX,8		;voltar o ponteiro
-	;INT 21H
 	MOV DX,20H		;imprimir espaco em branco
 	INT 21H
 	MOV DX,8		;voltar o ponteiro
@@ -748,11 +568,6 @@ OPAND PROC
 	CALL PE
 	CALL PRINTSLINE
 	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	;CALL GETINPUTENC
 	CALL GET2OPS
 	AND BL,OP1
 	
@@ -770,11 +585,6 @@ OPOR PROC
 	CALL PE
 	CALL PRINTSLINE
 	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	;CALL GETINPUTENC
 	CALL GET2OPS
 	OR BL,OP1
 	
@@ -792,11 +602,6 @@ OPXOR PROC
 	CALL PE
 	CALL PRINTSLINE
 	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	;CALL GETINPUTENC
 	CALL GET2OPS
 	XOR BL,OP1
 	
@@ -814,6 +619,10 @@ OPNOT PROC
 	CALL PE
 	CALL PRINTSLINE
 	
+	CALL GETINENCOD
+	LEA DX,RCVOP1
+	MOV AH,9
+	INT 21H
 	CALL GETINPUTENC
 	
 	MOV BL,OP1
@@ -832,11 +641,6 @@ OPADD PROC
 	CALL PE
 	CALL PRINTSLINE
 	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	;CALL GETINPUTENC
 	CALL GET2OPS
 	ADD BL,OP1
 	
@@ -855,12 +659,6 @@ OPSUB PROC
 	CALL PE
 	CALL PRINTSLINE
 	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	
-	;CALL GETINPUTENC
 	CALL GET2OPS
 	
 	MOV BL,OP1
@@ -889,12 +687,7 @@ OPMUL PROC
 	INT 21H
 	CALL PE
 	CALL PRINTSLINE
-	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	;CALL GETINPUTENC
+
 	CALL GET2OPS
 	
 	MOV TEMP,AL
@@ -947,12 +740,7 @@ OPM2E PROC
 	INT 21H
 	CALL PE
 	CALL PRINTSLINE
-	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	;CALL GETINPUTENC
+
 	CALL GET2OPS
 	
 	MOV CL,OP1
@@ -973,12 +761,7 @@ OPD2E PROC
 	INT 21H
 	CALL PE
 	CALL PRINTSLINE
-	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	;CALL GETINPUTENC
+
 	CALL GET2OPS
 	
 	MOV CL,OP1
@@ -1042,7 +825,6 @@ GETINPUT PROC
 GETINPUT ENDP
 
 DELCHAR PROC
-	;MOV TEMP,AL
 	MOV DELFLAG,0
 	CMP AL,8
 	JNE RETU
@@ -1060,7 +842,6 @@ DELCHAR PROC
 	MOV DX,8		;voltar o ponteiro
 	INT 21H
 RETU:
-	;MOV AL,TEMP
 	RET
 DELCHAR ENDP
 
@@ -1159,15 +940,7 @@ PRINTMEN PROC
 	LEA DX,CMD10
 	MOV AH,09 ;imprimir strings
 	INT 21H
-	
-	;CALL PE
-	
-	;MOV AX, @DATA
-	;MOV DS,AX
-	;LEA DX,CMD11
-	;MOV AH,09 ;imprimir strings
-	;INT 21H
-	
+
 	CALL PE
 	
 	LEA DX,CMD12
@@ -1180,8 +953,6 @@ PRINTMEN PROC
 PRINTMEN ENDP
 
 OUTPUT PROC
-		;CALL PE
-
 		LEA DX,MODOUT
 		MOV AH,09 ;imprimir strings
 		INT 21H
@@ -1216,29 +987,21 @@ OUTPUT PROC
 
 		CALL PRINTSLINE
 
-		;MOV AH,01			;recebe comando (salva em AL)
-		;INT 21H				;esperar o CONFIRMA? (ENTER)
-
 		MOV DX,03EH			;imprime seta
 		INT 21H
 		MOV TEMPM,44H		;default modo D
 	ASKAO:
 	MOV AH,2
-	;XOR DX,DX
+
 	MOV DX,08H			;apaga ultimo valor
 	INT 21H
-	;MOV AH,2
+
 	MOV DX,08H			;apaga ultimo valor
 	INT 21H
 	MOV DX,08H			;apaga ultimo valor
 	INT 21H
 	MOV DX,03EH			;imprime seta
 	INT 21H
-
-	;XOR DX,DX
-	;MOV AH,2
-	;MOV DL,TEMPM		;imprime ultimo valor
-	;INT 21H
 	
 	MOV AH,01			;recebe comando (salva em AL)
 	INT 21H
@@ -1250,7 +1013,6 @@ OUTPUT PROC
 	GOTMOO:
 	
 		MOV AL,TEMPM
-		;CALL PE
 		
 		CMP AL,59H
 		JB LMNO
@@ -1275,9 +1037,6 @@ OUTPUT PROC
 		JMP OUTPUT
 
 		CASE1:
-		
-		;CALL PE
-		;MOV BX,2
 		LEA DX,SEL1
 		MOV AH,09 ;imprimir strings
 		INT 21H
@@ -1289,8 +1048,6 @@ OUTPUT PROC
 		JMP MAGIC
 
 		CASE2:
-		
-		;CALL PE
 		LEA DX,SEL2
 		MOV AH,09 ;imprimir strings
 		INT 21H
@@ -1302,9 +1059,6 @@ OUTPUT PROC
 		JMP MAGIC
 
 		CASE3:
-
-		;CALL PE
-		;MOV BX,10
 		LEA DX,SEL3
 		MOV AH,09 ;imprimir strings
 		INT 21H
@@ -1316,11 +1070,6 @@ OUTPUT PROC
 		JMP MAGIC
 
 		CASE4:
-
-		;CALL PE
-		;MOV BX,16
-		;MOV AX, @DATA
-		;MOV DS,AX
 		LEA DX,SEL4
 		MOV AH,09 ;imprimir strings
 		INT 21H
@@ -1338,16 +1087,15 @@ OUTPUT PROC
 
         MOV AL, OP1     ;move operador 1 para al            
 
-        MOV CL, AL		;move al para cl
-        ;MOV AX, 0       ;limpa ax    
+        MOV CL, AL		;move al para cl 
 		XOR AX,AX
 
         MOV AL, CL      ;retorna cl para al     
 
-        ;MOV CX, 0       ;inicializa o contador
+						;inicializa o contador
 		XOR CX,CX
 
-        ;MOV DX, 0       ;limpa dx
+        		    	;limpa dx
 		XOR DX,DX
 
         DVD2:   		;divide por 16
@@ -1357,7 +1105,7 @@ OUTPUT PROC
 
             ADD CX, 1   ;adiciona 1 ao contador
 
-            ;MOV DX, 0   ;limpa dx
+            			;limpa dx
 			XOR DX,DX
 
             CMP AX, 0   ;compara o resultado da div com 0
@@ -1365,7 +1113,7 @@ OUTPUT PROC
             JNE DVD2   	;se o resultado for !=0 faz a operação novamente
 
         GHEX:
-            ;MOV DX, 0   ;limpa DX 
+            			;limpa DX 
 			XOR DX,DX
 
             POP DX   	;copia o conteúdo da memória indicado por dx
@@ -1392,17 +1140,15 @@ OUTPUT PROC
             JMP PRINTHEX            
 
         STOP:
-
         RET
-       	;MOV AH,4CH
-		;INT 21H
-		
+
 	DIMM:
 	MOV DL,2DH
 	MOV AH, 02h  ;imprime resultado na tela
     INT 21H
 	MOV OPA,0
 	JMP MAGIC
+
 OUTPUT ENDP
 
 LIKE PROC

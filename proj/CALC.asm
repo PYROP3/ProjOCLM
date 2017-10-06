@@ -7,18 +7,18 @@ TITLE CALCULADORA SHOW
 	BOUNDUP	DB "=======================================================$"
 	TITULO 	DB "|                     Calculadora                     |$"
 	DIGITE 	DB "|Operadores: (selecione um)                           |$"
-	CMD1	DB "|  1 - AND                                            |$"	;2
-	CMD2	DB "|  2 - OR                                             |$"	;2
-	CMD3	DB "|  3 - XOR                                            |$"	;2
-	CMD4	DB "|  4 - NOT                                            |$"	;1
-	CMD5	DB "|  5 - Soma                                           |$"	;2
-	CMD6	DB "|  6 - Subtracao                                      |$"	;2
-	CMD7	DB "|  7 - Multiplicacao                                  |$"	;2
-	CMD8	DB "|  8 - Divisao                                        |$"	;2
-	CMD9	DB "|  9 - Multiplicacao por 2 exp                        |$"	;1
-	CMD10	DB "|  A - Divisao por 2 exp                              |$"	;1
-	CMD11	DB "|  B - Ajuda (imprimir comandos novamente)            |$"	;0
-	CMD12	DB "|  E - Encerrar calculadora                           |$"	;0
+	CMD1	DB "|  A - AND                                            |$"	;2
+	CMD2	DB "|  B - OR                                             |$"	;2
+	CMD3	DB "|  C - XOR                                            |$"	;2
+	CMD4	DB "|  D - NOT                                            |$"	;1
+	CMD5	DB "|  E - Soma                                           |$"	;2
+	CMD6	DB "|  F - Subtracao                                      |$"	;2
+	CMD7	DB "|  G - Multiplicacao                                  |$"	;2
+	CMD8	DB "|  H - Divisao                                        |$"	;2
+	CMD9	DB "|  I - Multiplicacao por 2 exp                        |$"	;1
+	CMD10	DB "|  J - Divisao por 2 exp                              |$"	;1
+	;CMD11	DB "|  B - Ajuda (imprimir comandos novamente)            |$"	;0
+	CMD12	DB "|  X - Encerrar calculadora                           |$"	;0
 	RCVOP1	DB "|Digite o primeiro valor: $"
 	RCVOP2	DB "|Digite o segundo  valor: $"
 	CCMD	DB 0H
@@ -30,10 +30,10 @@ TITLE CALCULADORA SHOW
 	DDIVIS	DB "|=====================================================|$"
 	MODENT	DB "|Modos de entrada:                                    |$"
 	MODOUT	DB "|Modos de saida:                                      |$"
-	MOD1	DB "|  1 - Binario           (0-1)                        |$"
-	MOD2	DB "|  2 - Octal             (0-7)                        |$"
-	MOD3	DB "|  3 - Decimal (DEFAULT) (0-9)                        |$"
-	MOD4	DB "|  4 - Hexadecimal       (0-F)                        |$"
+	MOD1	DB "|  B - Binario           (0-1)                        |$"
+	MOD2	DB "|  O - Octal             (0-7)                        |$"
+	MOD3	DB "|  D - Decimal (DEFAULT) (0-9)                        |$"
+	MOD4	DB "|  H - Hexadecimal       (0-F)                        |$"
 	ERRMSG	DB "|              Valor fora dos limites                 |$"
 	CMOD	DB 0H
 	TEMP	DB 0H
@@ -75,11 +75,7 @@ BEGIN PROC
 	INT 21H
 
 	CALL PE
-
-
-IMPINT:	
-	
-	
+IMPINT:
 	CALL PRINTDLINE
 	
 	CALL PRINTMEN
@@ -96,49 +92,45 @@ IMPINT:
 	MOV AH,01			;recebe comando (salva em AL)
 	INT 21H				;esperar o CONFIRMA? (ENTER)
 	MOV CCMD,AL
-	;CALL PE
+
 	MOV AX,3H			;limpar a tela
 	INT 10H				;limpar a tela
 	
 	MOV OP1,0
-	MOV OP1,0
-	;XOR OP1,OP1
-	;XOR OP2,OP2			;reseta os operandos
+	MOV OP1,0			;reseta os operandos
 	
 	;CALL GETINPUTENC	;reposicionar nas funcoes
 	MOV AL,CCMD
+
 	;comeca a comparar o comando, verificar a operacao a ser executada
 	;em algumas, salvar OP1 em OP2 e chamar GETINPUTENC de novo
-	CMP AL,31H	;1
+	CMP AL,59H
+	JB LWRC
+	AND AL,0DFH ;minuscula
+LWRC:
+	CMP AL,58H	;X
+	JE CENC	
+	CMP AL,41H	;A || a
 	JE CAND
-	CMP AL,32H	;2
+	CMP AL,42H	;B || b
 	JE COR
-	CMP AL,33H	;3
+	CMP AL,43H	;C || c
 	JE CXOR
-	CMP AL,34H	;...
+	CMP AL,44H	;...
 	JE CNOT
-	CMP AL,35H
+	CMP AL,45H
 	JE CSUM
-	CMP AL,36H
+	CMP AL,46H
 	JE CSUB
-	CMP AL,37H
+	CMP AL,47H
 	JE CMUL
-	CMP AL,38H
+	CMP AL,48H
 	JE CDIV
-	CMP AL,39H
+	CMP AL,49H
 	JE CMU2
-	CMP AL,41H	;A
+	CMP AL,4AH	
 	JE CDV2
-	;CMP AL,42H	;B
-	;JE CHEL
-	CMP AL,45H	;E
-	JE CENC
-	CMP AL,61H	;a
-	JE CDV2
-	;CMP AL,62H	;b
-	;JE CHEL
-	CMP AL,65H	;e
-	JE CENC
+	
 	;se nenhum comando foi achado, ele nao existe
 	;imprimir erro e pedir o comando de novo
 	CALL PRERR
@@ -197,6 +189,7 @@ PRRES:				;aqui que tem que adicionar o negocinho
 BEGIN ENDP
 
 PRERR PROC	;print error
+	CALL PE
 	LEA DX,ERRMSG
 	MOV AH,09 ;imprimir strings
 	INT 21H
@@ -219,6 +212,7 @@ PE ENDP
 GETINENCOD PROC
 	JMP BEINP
 PRER:
+	CALL PE
 	CALL PRERR 
 BEINP:
 	MOV TEMP,AL
@@ -257,8 +251,8 @@ BEINP:
 	
 	MOV DX,03EH			;imprime seta
 	INT 21H
-	MOV AL,33H			;default comando 2
-	MOV TEMPM,33H
+	MOV AL,44H			;default comando D
+	MOV TEMPM,44H
 	MOV DX,03EH			;imprime seta
 	INT 21H
 	
@@ -290,12 +284,55 @@ ASKA:
 	JMP ASKA
 GOTMO:
 	MOV AL,TEMPM
-	CMP AL,31H
-	JB PRER
-	CMP AL,34H
-	JA PRER
+	
+	CMP AL,59H
+	JB BODHI
+	AND AL,0DFH
+BODHI:
+	CMP AL,42H
+	JE M1
+	CMP AL,4FH
+	JE M2
+	CMP AL,44H
+	JE M3
+	CMP AL,48H
+	JE M4
 
+	JMP PRER
+M1:
 	MOV CMOD,AL
+	LEA DX,SEL1
+	MOV AH,09
+	INT 21H
+	CALL PE
+	CALL PRINTSLINE
+	JMP GOK
+M2:
+	MOV CMOD,AL
+	LEA DX,SEL2
+	MOV AH,09
+	INT 21H
+	CALL PE
+	CALL PRINTSLINE
+	JMP GOK
+M3:
+	MOV CMOD,AL
+	LEA DX,SEL3
+	MOV AH,09
+	INT 21H
+	CALL PE
+	CALL PRINTSLINE
+	JMP GOK
+M4:
+	MOV CMOD,AL
+	LEA DX,SEL4
+	MOV AH,09
+	INT 21H
+	CALL PE
+	CALL PRINTSLINE
+	JMP GOK
+GOK:
+	;MOV CMOD,AL
 	RET
 GETINENCOD ENDP
 
@@ -374,26 +411,32 @@ BENINP:
 ;	MOV CMOD,AL
 	;CALL PE
 	
-	CMP CMOD,31H
+	CMP AL,59H
+	JB BODH
+	AND AL,0DFH
+	
+BODH:
+	CMP CMOD,42H
 	JE CAS1IJ
 	
-	CMP CMOD,32H
+	CMP CMOD,4FH
 	JE CAS2IJ
 	
-	CMP CMOD,33H
+	CMP CMOD,44H
 	JE CAS3IJ
 	
-	CMP CMOD,34H
+	CMP CMOD,48H
 	JE CAS4I
 	
 	JMP IFERR
 		;caso 4 HEXA
 CAS4I:	
-		;LEA DX,SEL4
-		;MOV AH,09
-		;INT 21H
-		;CALL PE
-		;CALL PRINTSLINE
+	;LEA DX,SEL4
+	;MOV AH,09
+	;INT 21H
+	;CALL PE
+	;CALL PRINTSLINE
+	
 	MOV AH,2
 	MOV DX,30H			;imprime zero
 	INT 21H
@@ -405,11 +448,13 @@ CAS4:
 		MOV AH,01
 		INT 21H
 		CMP AL,0DH
-		JZ JSHCT		;termina de receber o operando se receber CR
-		CALL DELCHAR
-		CMP DELFLAG,1
-		JE CAS4
+		JE JSHCT		;termina de receber o operando se receber CR
+		;CALL DELCHAR
+		;CMP DELFLAG,1
+		;JE CAS4
 						;checar se esta fora dos limites
+		CMP AL,08H
+		JE CAS4DEL
 		
 		CMP AL,30H		;<0
 		JL NIFER
@@ -461,25 +506,43 @@ HOK:
 		JMP CAS2
 	;JMP EXITMIMP
 NIFER:
-	CALL PRERR
-	JMP BENINP
+	JMP CAS4CLR
+	;CALL PRERR
+	;JMP BENINP
 JSHCT:
 	JMP EXITMIMP
 ;CAS3IJ:
 	;JMP CAS3I
-CAS2DEL:
-	MOV AL,OP1
-	MOV CX,10
-	DIV AL
-	MOV OP1,AL
-	JMP CAS2
+CAS4DEL:
+	CALL DELCHARRR
+	CALL SDCHAR
+	JMP CAS4
+CAS4CLR:
+	CALL SDCHAR2
+	JMP CAS4
+
+CAS3DEL:
+	;MOV AH,0
+	;MOV AL,OP1
+
+	;MOV CX,10
+	;DIV CL
+	;MOV OP1,AL
+	CALL DELCHARRR
+	CALL SDCHAR
+	JMP CAS3
+CAS3CLR:
+	CALL SDCHAR2
+	JMP CAS3
+
 	
 CAS3I:	;caso 3 DECIM
-		;LEA DX,SEL3
-		;MOV AH,09
-		;INT 21H
-		;CALL PE
-		;CALL PRINTSLINE
+	;LEA DX,SEL3
+	;MOV AH,09
+	;INT 21H
+	;CALL PE
+	;CALL PRINTSLINE
+	
 	MOV AH,2
 	MOV DX,30H			;imprime zero
 	INT 21H
@@ -490,19 +553,22 @@ CAS3:
 		
 		MOV AH,01
 		INT 21H
+
+
 		CMP AL,0DH
 		JZ EXITMIMPJ	;termina de receber um operando se receber CR
-		CALL DELCHAR
-		CMP DELFLAG,1
-		JE CAS3
+
+		;CALL DELCHAR
+		;CMP DELFLAG,1
+		;JE CAS3
 		
-		CMP AL,08H
-		JZ CAS2DEL
+		CMP AL,08H		;checar se é o DEL
+		JE CAS3DEL
 						;checar se esta fora dos limites
 		CMP AL,30H
-		JL IFERRJ
+		JB CAS3CLR
 		CMP AL,39H
-		JG IFERRJ
+		JA CAS3CLR
 						;se chegou aqui, nao houveram erros de leitura
 		CALL GETINPUT
 		;MOV TEMP,AL
@@ -513,16 +579,20 @@ CAS3:
 		;MOV AL,TEMP
 		
 		;MUL OP1,010
+		
 		SUB AL,30H
-		ADD OP1,AL		
+		ADD OP1,AL
+		;SUB OP1,30H
+
 		JMP CAS3		;receber proximo caracter
 	;JMP EXITMIMP
 CAS2I:	;caso 2 OCT
-		;LEA DX,SEL2
-		;MOV AH,09
-		;INT 21H
-		;CALL PE
-		;CALL PRINTSLINE
+	;LEA DX,SEL2
+	;MOV AH,09
+	;INT 21H
+	;CALL PE
+	;CALL PRINTSLINE
+	
 	MOV AH,2
 	MOV DX,30H			;imprime zero
 	INT 21H
@@ -534,15 +604,18 @@ CAS2:
 		MOV AH,01
 		INT 21H
 		CMP AL,0DH
-		JZ EXITMIMP
-		CALL DELCHAR
-		CMP DELFLAG,1
-		JE CAS2
+		JE EXITMIMPJ
+		;CALL DELCHAR
+		;CMP DELFLAG,1
+		;JE CAS2
 						;checar se esta fora dos limites
+		CMP AL,08H
+		JE CAS2DEL
+		
 		CMP AL,30H
-		JL IFERR
-		CMP AL,38H
-		JG IFERR
+		JB CAS2CLR
+		CMP AL,37H
+		JA CAS2CLR
 						;se chegou aqui, nao houveram erros de leitura
 		CALL GETINPUT
 
@@ -550,16 +623,24 @@ CAS2:
 		ADD OP1,AL		
 	
 		JMP CAS2
-	
+CAS2DEL:
+	CALL DELCHARRR
+	CALL SDCHAR
+	JMP CAS2
+CAS2CLR:
+	CALL SDCHAR2
+	JMP CAS2
+
 IFERRJ: JMP IFERR
 EXITMIMPJ: JMP EXITMIMP
 
 CAS1I:	;caso 1 BIN
-		;LEA DX,SEL1
-		;MOV AH,09
-		;INT 21H
-		;CALL PE
-		;CALL PRINTSLINE
+	;LEA DX,SEL1
+	;MOV AH,09
+	;INT 21H
+	;CALL PE
+	;CALL PRINTSLINE
+	
 	MOV AH,2
 	MOV DX,30H			;imprime zero
 	INT 21H
@@ -570,16 +651,20 @@ CAS1:
 		
 		MOV AH,01
 		INT 21H
+
 		CMP AL,0DH
-		JZ EXITMIMP
-		CALL DELCHAR
-		CMP DELFLAG,1
-		JE CAS1
+		JE EXITMIMP
+		;CALL DELCHAR
+		;CMP DELFLAG,1
+		;JE CAS1
 						;checar se esta fora dos limites
+		CMP AL,08H
+		JE CAS1DEL
+		
 		CMP AL,30H
-		JL IFERR
+		JB CAS1CLR
 		CMP AL,31H
-		JG IFERR
+		JA CAS1CLR
 						;se chegou aqui, nao houveram erros de leitura
 		
 		CALL GETINPUT
@@ -589,21 +674,71 @@ CAS1:
 		ADD OP1,AL		
 	
 		JMP CAS1
+CAS1DEL:
+	CALL DELCHARRR
+	CALL SDCHAR
+	JMP CAS1
+CAS1CLR:
+	CALL SDCHAR2
+	JMP CAS1
 	;JMP EXITMIMP
 IFERR:
-	CALL PRERR
+	;CALL PRERR
+	CALL SDCHAR
 	JMP BENINP
 EXITMIMP:
-	MOV AX,@DATA
-	MOV DS,AX
+	;MOV AX,@DATA
+	;MOV DS,AX
 	LEA DX,DIVIS
 	MOV AH,09
 	INT 21H
 	CALL PE
 	
-	MOV AL,TEMP
+	;MOV AL,TEMP
 	RET
 GETINPUTENC ENDP
+
+DELCHARRR PROC
+	XOR AX,AX
+	;MOV AH,0
+	MOV AL,OP1
+	;CBW AL
+
+	XOR CX,CX
+	MOV CL,CMULVAL
+	;CBW BL
+	;MOV BL,10
+
+	DIV CL
+
+	MOV OP1,AL
+
+	RET
+DELCHARRR ENDP
+
+SDCHAR PROC
+	MOV AH,2
+	;MOV DX,8		;voltar o ponteiro
+	;INT 21H
+	MOV DX,20H		;imprimir espaco em branco
+	INT 21H
+	MOV DX,8		;voltar o ponteiro
+	INT 21H
+	
+	RET
+SDCHAR ENDP
+
+SDCHAR2 PROC
+	MOV AH,2
+	MOV DX,8		;voltar o ponteiro
+	INT 21H
+	MOV DX,20H		;imprimir espaco em branco
+	INT 21H
+	MOV DX,8		;voltar o ponteiro
+	INT 21H
+	
+	RET
+SDCHAR2 ENDP
 
 OPAND PROC
 	CALL PRINTOPINTR
@@ -781,12 +916,7 @@ OPDIV PROC
 	INT 21H
 	CALL PE
 	CALL PRINTSLINE
-	
-	;CALL GETINPUTENC
-	;MOV BL,OP1
-	;MOV OP2,BL
-	;MOV OP1,0
-	;CALL GETINPUTENC
+
 	CALL GET2OPS
 	CMP OP1,0
 	JZ DIVER
@@ -897,10 +1027,15 @@ ENDCALC ENDP
 
 GETINPUT PROC
 	MOV TEMP,AL
+
+	XOR AX,AX
 	MOV AL,OP1 
+	XOR CX,CX
 	MOV CL,CMULVAL
+
 	MUL CL
 	MOV OP1,AL
+
 	MOV AL,TEMP
 	
 	RET
@@ -1086,6 +1221,7 @@ OUTPUT PROC
 
 		MOV DX,03EH			;imprime seta
 		INT 21H
+		MOV TEMPM,44H		;default modo D
 	ASKAO:
 	MOV AH,2
 	;XOR DX,DX
@@ -1115,16 +1251,23 @@ OUTPUT PROC
 	
 		MOV AL,TEMPM
 		;CALL PE
-		CMP AL,31H			;verifica opção digitada
+		
+		CMP AL,59H
+		JB LMNO
+
+		AND AL,0DFH			;minuscula
+		
+	LMNO:
+		CMP AL,42H			;verifica opção digitada
 		JE CASE1
 
-		CMP AL,32H
+		CMP AL,4FH
 		JE CASE2
 
-		CMP AL,33H
+		CMP AL,44H
 		JE CASE3
 
-		CMP AL,34H
+		CMP AL,48H
 		JE CASE4
 	
 		CALL PRERR

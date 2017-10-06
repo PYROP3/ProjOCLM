@@ -25,6 +25,8 @@ TITLE CALCULADORA SHOW
 	OP1		DB 0H
 	OP2		DB 0H
 	OPA		DB 0H
+	SOOP	DB 0H
+	TOADD	DB 0H
 	RESUL	DB 0H
 	DIVIS 	DB "|-----------------------------------------------------|$"
 	DDIVIS	DB "|=====================================================|$"
@@ -57,6 +59,7 @@ TITLE CALCULADORA SHOW
 	EXMES	DB "|              Encerrando calculadora...              |$"
 	CMULVAL	DB 0H
 	DELFLAG	DB 0H
+
 .CODE
 BEGIN PROC
 	MOV AX, @DATA
@@ -430,11 +433,15 @@ CAS3:
 		JB CAS3CLR
 		CMP AL,39H
 		JA CAS3CLR
+
+		SUB AL,30H
+		MOV TOADD,AL
 						;se chegou aqui, nao houveram erros de leitura
 		CALL GETINPUT
 		
-		SUB AL,30H
-		ADD OP1,AL
+		;SUB AL,30H
+		;ADD OP1,AL
+
 		JMP CAS3		;receber proximo caracter
 CAS2I:	;caso 2 OCT
 	MOV AH,2
@@ -810,17 +817,35 @@ ENDCALC ENDP
 
 GETINPUT PROC
 	MOV TEMP,AL
+	MOV AL,OP1
+	MOV SOOP,AL
 
 	XOR AX,AX
-	MOV AL,OP1 
+	MOV AL,OP1
 	XOR CX,CX
 	MOV CL,CMULVAL
 
 	MUL CL
+	JNO SAFE
+
+	CALL SDCHAR2
+	MOV AL,SOOP
+	MOV OP1,AL
+	MOV AL,TEMP
+	RET
+SAFE:
+	ADD AL,TOADD
+	JNC SAFE2
+	
+	CALL SDCHAR2
+	MOV AL,SOOP
+	MOV OP1,AL
+	MOV AL,TEMP
+	RET
+SAFE2:
 	MOV OP1,AL
 
 	MOV AL,TEMP
-	
 	RET
 GETINPUT ENDP
 
